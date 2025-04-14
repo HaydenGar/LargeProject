@@ -32,7 +32,7 @@ app.post('/api/login', async (req, res, next) => {
     const { login, password } = req.body;
 
     const db = client.db();
-    const results = await db.collection('Users').find({ Username: login, Password: password }).toArray();
+    const results = await db.collection('Users').find({ Login: login, Password: password }).toArray();
 
 
     var id = -1;
@@ -58,7 +58,7 @@ app.post('/api/register', async(req, res, next) => {
         !username || username.trim() === '' ||
         !password || password.trim() === '')
     {
-        return res.status(400).json({ UserId: -1, error:'Please ensure all fields are valid.'});
+        return res.status(400).json({ UserId: -1, error:'Please ensure all fields have been filled.'});
     }
 
     try
@@ -77,7 +77,7 @@ app.post('/api/register', async(req, res, next) => {
         const highestIdUser = await db.collection('Users')
             .find() //finds every document in collection
             .sort({ UserId: -1 }) //sorts documents in descending order (-1) based on UserId
-            .limit(1) //only provide the first document (1)
+            .limit(1) //only provide the first document AKA the highest (1)
             .toArray();
 
         //new user's ID #
