@@ -70,7 +70,7 @@ app.post('/api/register', async(req, res, next) => {
             { collation: { locale: 'en', strength: 2 }}); //case-insensitive search (collation achieves this)
         if(existingUser) //existing username found
         {
-            return res.status(400).json({UserId: -1, error: 'Username already in use.'}) //error nums?
+            return res.status(400).json({UserId: -1, error: 'Username already in use.'});
         }
 
         //generate UserId
@@ -106,6 +106,97 @@ app.post('/api/register', async(req, res, next) => {
     catch(e)
     {
         return res.status(500).json({ UserId: -1, error: 'Failed to register.'});
+    }
+});
+
+app.post('/api/createEntry', async(req, res, next) => {
+    const { user, entryText} = req.body;
+
+    //validation
+    if(!user)
+    {
+        return res.status(400).json({ EntryId: -1, error: 'Missing user.' });
+    }
+
+    //try to create entry
+    try
+    {
+        const db = client.db();
+
+        //find entry with highest id
+        const highestIdEntry = await db.collection('Entries')
+            .find()
+            .sort({ EntryId: -1})
+            .limit(1)
+            .toArray();
+
+        //new entry's id #
+        let newEntryId = 1;
+        //entries exist
+        if(highestIdEntry.length > 0)
+        {
+            newEntryId = highestIdEntry[0].EntryId + 1; //increment the id of current highest entryId
+        }
+
+        const dateCreated = new Date();
+
+        //create new entry
+        const newEntry =
+        {
+            EntryId: newEntryId,
+            UserId: user.UserId,
+            DateCreated: dateCreated,
+            EntryText: entryText
+        }
+
+        //insert into mongo
+        await db.collection('Entries').insertOne(newEntry);
+        return res.status(200).json({ EntryId:newEntryId, UserId: user.UserId,
+            DateCreated: dateCreated, EntryText: entryText, error: ''});
+    }
+    //failed to create entry
+    catch(e)
+    {
+        return res.status(500).json({ EntryId: -1, error: 'Failed to create entry.'})
+    }
+});
+
+app.post('/api/deleteEntry', async(req, res, next) => {
+    const { entryId } = req.body;
+
+    //ensure entryId exists
+    if(entryId == null)
+    {
+        return res.status(400).json({ EntryId: -1, error: 'Missing EntryId.' });
+    }
+
+    //validate entryId is number
+    const id = Number(entryId);
+    if(Number.isNaN(id))
+    {
+        return res.status(400).json({ EntryId: -1, error: 'EntryId must be a number.' });
+    }
+
+    //try to delete
+    try
+    {
+        const db = client.db();
+
+        //delete entry
+        const result = await db.collection('Entries').deleteOne({ EntryId:entryId });
+        //error if nothing was deleted
+        if(result.deletedCount === 0)
+        {
+            return res.status(404).json({ EntryId: entryId, error: 'Entry not found.' });
+        }
+
+        //success
+        return res.status(200).json({ EntryId: entryId, error: ''});
+    }
+    //error during deletion
+    catch(e)
+    {
+        return res.status(500).json({ EntryId: -1, error: 'Failed to delete entry.'})
     }
 });
 
