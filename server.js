@@ -4,7 +4,7 @@ const cors = require('cors');
 const app = express();
 
 const MongoClient = require('mongodb').MongoClient;
-const url = '';
+const url = 'mongodb+srv://lemmons:akDfftIpaTfzBSX1@journal-app.ncnkw8f.mongodb.net/Journal?retryWrites=true&w=majority&appName=journal-app';
 const client = new MongoClient(url);
 client.connect();
 
