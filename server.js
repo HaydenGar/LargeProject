@@ -3,10 +3,14 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const app = express();
 
+const multer = require('multer');
+const { GridFSBucket, ObjectId } = require('mongodb');
 const MongoClient = require('mongodb').MongoClient;
 const url = 'mongodb+srv://vellankianup:LMbRQXuFfhFCmnMh@journal-app.ncnkw8f.mongodb.net/Journal?retryWrites=true&w=majority&appName=journal-app';
 const client = new MongoClient(url);
 client.connect();
+
+const upload = multer({ storage: multer.memoryStorage() });
 
 app.use(cors());
 app.use(bodyParser.json());
@@ -109,7 +113,7 @@ app.post('/api/register', async(req, res, next) => {
     }
 });
 
-app.post('/api/createEntry', upload.array('images', 5), async(req, res, next) => {
+app.post('/api/createEntry', upload.array('images', 3), async(req, res, next) => {
     const { userId, entryText} = req.body;
 
     //validation
@@ -122,6 +126,22 @@ app.post('/api/createEntry', upload.array('images', 5), async(req, res, next) =>
     try
     {
         const db = client.db();
+        const bucket = new GridFSBucket(db, { bucketName: 'entryImages'});
+
+        const imageFileIds = [];
+        for(const file of req.files)
+        {
+            const uploadStream = bucket.openUploadStream(file.originalname,
+                { contentType: file.mimetype }
+            );
+            uploadStream.end(file.buffer);
+
+            await new Promise((resolve, reject) => {
+                uploadStream.on('error', reject);
+                uploadStream.on('finish', () => resolve());
+            });
+            imageFileIds.push(uploadStream.id);
+        }
 
         //find entry with highest id
         const highestIdEntry = await db.collection('Entries')
@@ -146,17 +166,19 @@ app.post('/api/createEntry', upload.array('images', 5), async(req, res, next) =>
             EntryId: newEntryId,
             UserId: userId,
             DateCreated: dateCreated,
-            EntryText: entryText
+            EntryText: entryText,
+            ImageFileIds: imageFileIds
         }
 
         //insert into mongo
         await db.collection('Entries').insertOne(newEntry);
         return res.status(200).json({ EntryId: newEntryId, UserId: userId,
-            DateCreated: dateCreated, EntryText: entryText, error: ''});
+            DateCreated: dateCreated, EntryText: entryText, ImageFileIds: imageFileIds, error: ''});
     }
     //failed to create entry
     catch(e)
     {
+        console.error('boom: ', e);
         return res.status(500).json({ EntryId: -1, error: 'Failed to create entry.'})
     }
 });
@@ -217,6 +239,37 @@ app.post('/api/updateEntry', async(req, res, next) => {
     {
         return res.status(500).json({ EntryId: -1, error: 'Failed to update entry.'})
     }
+});
+
+app.get('/api/entryImage/:fileId', async(req, res, next) => {
+    await client.connect();
+    const db = client.db();
+    const bucket = new GridFSBucket(db, { bucketName: 'entryImages'});
+
+    let fileId;
+    try
+    {
+            fileId = new ObjectId(req.params.fileId);
+    }
+    catch
+    {
+            return res.status(400).json({ error: 'Invalid file ID.'});
+    }
+
+    const filesCollection = client.db().collection('entryImages.files');
+    const fileDocument = await filesCollection.findOne({ _id: fileId });
+    if(!fileDocument)
+    {
+            return res.status(404).json({ error: 'Image not found.' });
+    }
+
+    //set header
+    res.set('Content-Type', fileDocument.contentType || 'application/octet-stream');
+
+    //stream file chunks to client
+    const downloadStream = bucket.openDownloadStream(fileId);
+    downloadStream.on('error', () => res.sendStatus(404));
+    downloadStream.pipe(res);
 });
 
 app.listen(5000); // start Node + Express server on port 5000
