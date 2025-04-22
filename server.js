@@ -109,13 +109,13 @@ app.post('/api/register', async(req, res, next) => {
     }
 });
 
-app.post('/api/createEntry', async(req, res, next) => {
-    const { user, entryText} = req.body;
+app.post('/api/createEntry', upload.array('images', 5), async(req, res, next) => {
+    const { userId, entryText} = req.body;
 
     //validation
-    if(!user)
+    if(userId == null)
     {
-        return res.status(400).json({ EntryId: -1, error: 'Missing user.' });
+        return res.status(400).json({ EntryId: -1, error: 'Invalid userId.' });
     }
 
     //try to create entry
@@ -144,14 +144,14 @@ app.post('/api/createEntry', async(req, res, next) => {
         const newEntry =
         {
             EntryId: newEntryId,
-            UserId: user.UserId,
+            UserId: userId,
             DateCreated: dateCreated,
             EntryText: entryText
         }
 
         //insert into mongo
         await db.collection('Entries').insertOne(newEntry);
-        return res.status(200).json({ EntryId:newEntryId, UserId: user.UserId,
+        return res.status(200).json({ EntryId: newEntryId, UserId: userId,
             DateCreated: dateCreated, EntryText: entryText, error: ''});
     }
     //failed to create entry
@@ -197,6 +197,25 @@ app.post('/api/deleteEntry', async(req, res, next) => {
     catch(e)
     {
         return res.status(500).json({ EntryId: -1, error: 'Failed to delete entry.'})
+    }
+});
+
+app.post('/api/updateEntry', async(req, res, next) => {
+   const { entryId } = req.body;
+
+    //ensure entryId exists
+    if(entryId == null)
+    {
+        return res.status(400).json({ EntryId: -1, error: 'Missing EntryId.' });
+    }
+
+    try
+    {
+
+    }
+    catch(e)
+    {
+        return res.status(500).json({ EntryId: -1, error: 'Failed to update entry.'})
     }
 });
 
