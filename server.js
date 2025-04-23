@@ -114,7 +114,8 @@ app.post('/api/register', async(req, res, next) => {
 });
 
 app.post('/api/createEntry', upload.array('images', 3), async(req, res, next) => {
-    const { userId, entryText} = req.body;
+    const { id, entryText } = req.body;
+    const userId = parseInt(entryId);
 
     //validation
     if(userId == null)
@@ -203,17 +204,29 @@ app.post('/api/deleteEntry', async(req, res, next) => {
     try
     {
         const db = client.db();
+        const bucket = new GridFSBucket(db, { bucketName: 'entryImages' });
 
-        //delete entry
-        const result = await db.collection('Entries').deleteOne({ EntryId:entryId });
-        //error if nothing was deleted
-        if(result.deletedCount === 0)
+        //find entry
+        const result = await db.collection('Entries').findOne({ EntryId:id });
+        //entry not found
+        if(!result)
         {
-            return res.status(404).json({ EntryId: entryId, error: 'Entry not found.' });
+            return res.status(404).json({ EntryId: id, error: 'Entry not found.' });
         }
 
+        //delete GridFS image file by ObjectId
+        if(Array.isArray(result.ImageFileIds))
+        {
+            await Promise.all(
+                result.ImageFileIds.map(fileId => bucket.delete(new ObjectId(fileId)))
+            );
+        }
+
+        //delete entry itself
+        await db.collection('Entries').deleteOne({ EntryId: id})
+
         //success
-        return res.status(200).json({ EntryId: entryId, error: ''});
+        return res.status(200).json({ EntryId: id, error: ''});
     }
     //error during deletion
     catch(e)
