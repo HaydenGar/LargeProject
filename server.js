@@ -235,22 +235,41 @@ app.post('/api/deleteEntry', async(req, res, next) => {
     }
 });
 
-app.post('/api/updateEntry', async(req, res, next) => {
-   const { entryId } = req.body;
+app.post('/api/updateEntry', async (req, res, next) => {
+    const { entryId, entryText } = req.body;
 
-    //ensure entryId exists
-    if(entryId == null)
-    {
+    // ensure entryId exists
+    if (entryId == null) {
         return res.status(400).json({ EntryId: -1, error: 'Missing EntryId.' });
     }
-
-    try
-    {
-
+    // validate entryId is a number
+    const id = Number(entryId);
+    if (Number.isNaN(id)) {
+        return res.status(400).json({ EntryId: -1, error: 'EntryId must be a number.' });
     }
-    catch(e)
-    {
-        return res.status(500).json({ EntryId: -1, error: 'Failed to update entry.'})
+
+    try {
+        const db = client.db();
+        const result = await db
+            .collection('Entries')
+            .updateOne(
+                { EntryId: id },
+                { $set: { EntryText: entryText } }
+            );
+
+        // no match means the entry wasn’t found
+        if (result.matchedCount === 0) {
+            return res.status(404).json({ EntryId: id, error: 'Entry not found.' });
+        }
+
+        // success
+        return res.status(200).json({
+            EntryId: id,
+            EntryText: entryText,
+            error: ''
+        });
+    } catch (e) {
+        return res.status(500).json({ EntryId: -1, error: 'Failed to update entry.' });
     }
 });
 
