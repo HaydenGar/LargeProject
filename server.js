@@ -114,11 +114,11 @@ app.post('/api/register', async(req, res, next) => {
 });
 
 app.post('/api/createEntry', upload.array('images', 3), async(req, res, next) => {
-    const { id, entryText } = req.body;
-    const userId = parseInt(id);
+    const { userId, entryText } = req.body;
+    const parsedUserId = parseInt(userId, 10);
 
     //validation
-    if(userId == null)
+    if(Number.isNaN(parsedUserId))
     {
         return res.status(400).json({ EntryId: -1, error: 'Invalid userId.' });
     }
@@ -165,7 +165,7 @@ app.post('/api/createEntry', upload.array('images', 3), async(req, res, next) =>
         const newEntry =
         {
             EntryId: newEntryId,
-            UserId: userId,
+            UserId: parsedUserId,
             DateCreated: dateCreated,
             EntryText: entryText,
             ImageFileIds: imageFileIds
@@ -173,7 +173,7 @@ app.post('/api/createEntry', upload.array('images', 3), async(req, res, next) =>
 
         //insert into mongo
         await db.collection('Entries').insertOne(newEntry);
-        return res.status(200).json({ EntryId: newEntryId, UserId: userId,
+        return res.status(200).json({ EntryId: newEntryId, UserId: parsedUserId,
             DateCreated: dateCreated, EntryText: entryText, ImageFileIds: imageFileIds, error: ''});
     }
     //failed to create entry
