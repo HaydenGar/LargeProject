@@ -115,7 +115,7 @@ app.post('/api/register', async(req, res, next) => {
 
 app.post('/api/createEntry', upload.array('images', 3), async(req, res, next) => {
     const { id, entryText } = req.body;
-    const userId = parseInt(entryId);
+    const userId = parseInt(id);
 
     //validation
     if(userId == null)
