@@ -273,6 +273,17 @@ app.post('/api/updateEntry', async (req, res, next) => {
     }
 });
 
+app.get('/api/retreiveEntries', async (req, res, next) => {
+    try {
+      const db = client.db();
+      const userId = Number(req.query.userId);
+      const entries = await db.collection('Entries').find({ UserId: userId }).toArray();
+      return res.status(200).json({ entries, error: '' });
+    } catch (e) {
+      return res.status(500).json({ entries: [], error: 'Failed to retreive entries.' });
+    }
+  });
+
 app.get('/api/entryImage/:fileId', async(req, res, next) => {
     await client.connect();
     const db = client.db();
