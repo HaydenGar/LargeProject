@@ -1,81 +1,86 @@
 import React, { useState } from 'react';
 import './NotebookLogin.css';
 
-const NotebookLogin = () => {
+const NotebookLogin: React.FC = () => {
   const [flipped, setFlipped] = useState(false);
+
+  // ─── LOGIN STATE ─────────────────────────────────────────────────────────────
   const [loginName, setLoginName] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
+  const [loginMsg, setLoginMsg] = useState('');
+
+  // ─── SIGNUP STATE ────────────────────────────────────────────────────────────
   const [signupFirstName, setSignupFirstName] = useState('');
   const [signupLastName, setSignupLastName] = useState('');
   const [signupUsername, setSignupUsername] = useState('');
   const [signupPassword, setSignupPassword] = useState('');
-  const [message, setMessage] = useState('');
-  const [signupMessage, setSignupMessage] = useState('');
+  const [signupMsg, setSignupMsg] = useState('');
 
-  const handleLogin = async (event: any) => {
-    event.preventDefault();
-    const obj = { login: loginName, password: loginPassword };
-    const js = JSON.stringify(obj);
+  // ─── HANDLE LOGIN ────────────────────────────────────────────────────────────
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoginMsg('');
 
     try {
-      const response = await fetch('https://merntest.anupucf.xyz/api/login', {
+      const response = await fetch('https://journal.lemmons.my/api/login', {
         method: 'POST',
-        body: js,
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          login: loginName,
+          password: loginPassword,
+        }),
       });
 
-      const res = await response.json();
+      const { id, firstName, lastName, error } = await response.json();
 
-      if (res.id <= 0) {
-        setMessage('User/Password combination incorrect');
-      } else {
-        const user = {
-          firstName: res.firstName,
-          lastName: res.lastName,
-          id: res.id
-        };
-        localStorage.setItem('user_data', JSON.stringify(user));
-        setMessage('');
+      if (id > 0) {
+        localStorage.setItem(
+          'user_data',
+          JSON.stringify({ id, firstName, lastName })
+        );
         window.location.href = '/dashboard';
+      } else {
+        setLoginMsg(error || 'Login failed');
       }
-    } catch (e: any) {
-      setMessage('Login error: ' + e.toString());
+    } catch (err: any) {
+      setLoginMsg('Login error: ' + err.toString());
     }
   };
 
-  const handleSignup = async (event: any) => {
-    event.preventDefault();
-    const obj = {
-      firstName: signupFirstName,
-      lastName: signupLastName,
-      username: signupUsername,
-      password: signupPassword
-    };
+  // ─── HANDLE SIGNUP ───────────────────────────────────────────────────────────
+  const handleSignup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSignupMsg('');
 
     try {
-      const response = await fetch('https://merntest.anupucf.xyz/api/register', {
+      const response = await fetch('https://journal.lemmons.my/api/register', {
         method: 'POST',
-        body: JSON.stringify(obj),
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          firstName: signupFirstName,
+          lastName:  signupLastName,
+          username:  signupUsername,
+          password:  signupPassword,
+        }),
       });
 
-      const res = await response.json();
+      // server returns { UserId, FirstName, LastName, Login, error }
+      const { UserId, error } = await response.json();
 
-      if (res.UserId > 0) {
-        setSignupMessage('Signup successful! Please log in.');
+      if (UserId > 0) {
+        setSignupMsg('Signup successful! Please log in.');
+        // clear fields
         setSignupFirstName('');
         setSignupLastName('');
         setSignupUsername('');
         setSignupPassword('');
-
-        setTimeout(() => {
-          setFlipped(false);
-        }, 1000);
+        // flip back to login
+        setTimeout(() => setFlipped(false), 1000);
       } else {
-        setSignupMessage(res.error || 'Signup failed');
+        setSignupMsg(error || 'Signup failed');
       }
-    } catch (e: any) {
-      setSignupMessage('Signup error: ' + e.toString());
+    } catch (err: any) {
+      setSignupMsg('Signup error: ' + err.toString());
     }
   };
 
@@ -85,13 +90,15 @@ const NotebookLogin = () => {
         <div className="left-page">
           <h1>Welcome to Your Journal</h1>
           <p>
-            Your journal is your space.<br />
+            Your journal is your space.
+            <br />
             Let’s begin the next chapter.
           </p>
         </div>
 
         <div className="page-wrapper">
           <div className={`flipper ${flipped ? 'flipped' : ''}`}>
+            {/* LOGIN SIDE */}
             <div className="page front">
               <div className="form-content">
                 <h2>Login</h2>
@@ -109,17 +116,21 @@ const NotebookLogin = () => {
                   onChange={(e) => setLoginPassword(e.target.value)}
                 />
                 <button onClick={handleLogin}>Log In</button>
-                <button className="flip-toggle" onClick={() => {
-                  setFlipped(true);
-                  setMessage('');
-                  setSignupMessage('');
-                }}>
+                <button
+                  className="flip-toggle"
+                  onClick={() => {
+                    setFlipped(true);
+                    setLoginMsg('');
+                    setSignupMsg('');
+                  }}
+                >
                   Don’t have an account? Sign Up →
                 </button>
-                {message && <p className="message error">{message}</p>}
+                {loginMsg && <p className="message error">{loginMsg}</p>}
               </div>
             </div>
 
+            {/* SIGNUP SIDE */}
             <div className="page back">
               <div className="form-content">
                 <h2>Sign Up</h2>
@@ -149,16 +160,23 @@ const NotebookLogin = () => {
                   onChange={(e) => setSignupPassword(e.target.value)}
                 />
                 <button onClick={handleSignup}>Create Account</button>
-                <button className="flip-toggle" onClick={() => {
-                  setFlipped(false);
-                  setMessage('');
-                  setSignupMessage('');
-                }}>
+                <button
+                  className="flip-toggle"
+                  onClick={() => {
+                    setFlipped(false);
+                    setLoginMsg('');
+                    setSignupMsg('');
+                  }}
+                >
                   ← Back to Login
                 </button>
-                {signupMessage && (
-                  <p className={`message ${signupMessage.includes('successful') ? 'success' : 'error'}`}>
-                    {signupMessage}
+                {signupMsg && (
+                  <p
+                    className={`message ${
+                      signupMsg.includes('successful') ? 'success' : 'error'
+                    }`}
+                  >
+                    {signupMsg}
                   </p>
                 )}
               </div>
