@@ -1,0 +1,167 @@
+.view-entries-page {
+  padding: 2rem;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.view-entries-page header h1 {
+  text-align: center;
+  margin-bottom: 1.5rem;
+  font-family: 'Patrick Hand', cursive;
+  font-size: 2.2rem;
+}
+
+.search-bar {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.search-bar input {
+  width: 100%;
+  max-width: 600px;
+  padding: 0.75rem 1rem;
+  font-size: 1.1rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+.entries-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  width: 100%;
+}
+
+.no-results {
+  text-align: center;
+  color: #777;
+  font-size: 1.1rem;
+}
+
+.entry-card {
+  background: #fffceb;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 2rem;
+  box-shadow: inset 0 0 5px rgba(0,0,0,0.1);
+  font-family: 'Patrick Hand', cursive;
+  position: relative;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.entry-text {
+  white-space: pre-wrap;
+  line-height: 1.6;
+  margin-bottom: 1rem;
+  font-size: 1.2rem;
+}
+
+.entry-tags {
+  margin-bottom: 1.5rem;
+}
+
+.entry-tags .tag {
+  display: inline-block;
+  background: rgba(0,0,0,0.1);
+  border-radius: 0.25rem;
+  padding: 0.3rem 0.6rem;
+  margin-right: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.delete-button {
+  position: absolute;
+  bottom: 1rem;
+  right: 1rem;
+  background: #8B4513;
+  color: white;
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  font-size: 1rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.delete-button:hover {
+  background: #4a3b29;
+}
+
+/* mood emojis */
+.entry-stats {
+  display: flex;
+  align-items: flex-start;
+  gap: 20rem;
+  margin: 2rem 0;
+}
+
+
+.entry-emoji {
+  flex: 0 0 auto;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  width: 140px; /* fixed size area for the emoji */
+}
+
+.emoji-img {
+  width: 100px;
+  height: 100px;
+  object-fit: contain;
+}
+
+.entry-bars {
+  display: flex;
+  gap: 1.5rem;
+  flex: 1;
+}
+
+.bar-pair {
+  display: flex;
+  gap: 10rem;
+  justify-content: space-between;
+}
+
+.bar-label {
+  font-size: 0.95rem;
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+}
+
+.bar-column {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.rating-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  min-width: 160px;
+}
+
+
+.bar-container {
+  display: flex;
+  gap: 0.4rem;
+  height: 20px;
+  border-radius: 4px;
+}
+
+.bar-segment {
+  flex: 1;
+  border-radius: 100px;
+  transition: background-color 0.2s;
+}
+
+.bar-grid {
+  display: flex;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
