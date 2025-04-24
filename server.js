@@ -236,7 +236,7 @@ app.post('/api/deleteEntry', async(req, res, next) => {
 });
 
 app.post('/api/updateEntry', upload.array('images', 3), async (req, res, next) => {
-    const { entryId, entryText } = req.body;
+    const {entryId, entryText, tags, emoji, energy, productivity, sleep, stress} = req.body;
 
     // ensure entryId exists
     if (entryId == null) {
@@ -267,21 +267,37 @@ app.post('/api/updateEntry', upload.array('images', 3), async (req, res, next) =
             newImageIds.push(uploadStream.id);
         }
 
-        const result = await db
-            .collection('Entries')
-            .updateOne(
-                { EntryId: id },
-                {
-                    $set: { EntryText: entryText },
-                    $push: { ImageFileIds: {$each: newImageIds }}
-                }
-            );
+        const updateDoc = { $set: {} };
+
+        if (entryText != null) {
+            updateDoc.$set.EntryText = entryText;
+        }
+        if (tags != null) {
+            updateDoc.$set.Tags = Array.isArray(tags) ? tags : (typeof tags === 'string' ? tags.split(',').map(t => t.trim()).filter(Boolean) : []);
+        }
+        if (emoji != null) {
+            updateDoc.$set.Emoji = Number(emoji);
+        }
+        if (energy != null) {
+            updateDoc.$set.Energy = Number(energy);
+        }
+        if (productivity != null) {
+            updateDoc.$set.Productivity = Number(productivity);
+        }
+        if (sleep != null) {
+            updateDoc.$set.Sleep = Number(sleep);
+        }
+        if (stress != null) {
+        updateDoc.$set.Stress = Number(stress);
+        }
+        updateDoc.$push = { ImageFileIds: { $each: newImageIds } };
+
+        const result = await db.collection('Entries').updateOne({ EntryId: id }, updateDoc);
 
         // no match means the entry wasn’t found
         if (result.matchedCount === 0) {
             return res.status(404).json({ EntryId: id, error: 'Entry not found.' });
         }
-
         // success
         return res.status(200).json({
             EntryId: id,
