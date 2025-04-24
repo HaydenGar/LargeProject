@@ -1,0 +1,63 @@
+
+.fc-page {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  margin: 0;
+}
+
+.fc-header h1 {
+  height: 50px;
+  color: black;
+  text-align: center;
+  vertical-align: middle;
+  font-family: 'Patrick Hand', cursive;
+  font-size: 4rem;
+}
+
+.fc-main {
+  flex: 1;
+  overflow: auto;
+  padding: 1rem;
+  background: #FFFFFF;
+}
+
+.fc .fc-toolbar-title {
+  font-size: 1.5rem;
+}
+
+.fc .fc-daygrid-event {
+  font-size: 0.85rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.fc-event.calendar-entry {
+  background-color: #a5d6a7 !important;
+  border-color: #66bb6a !important;
+  color: black !important;
+}
+
+.fc .fc-button.fc-prev-button,
+.fc .fc-button.fc-next-button,
+.fc .fc-button.fc-today-button {
+  background-color: #cc9696;  /* Button background */
+  color: #000000;             /* Text/icon color */
+  border: 1px solid #ccc;
+  font-weight: bold;
+  transition: background-color 0.2s ease;
+}
+
+.fc .fc-button.fc-prev-button:hover,
+.fc .fc-button.fc-next-button:hover,
+.fc .fc-button.fc-today-button:hover {
+  background-color: #a17373;
+  color: #000;
+}
+
+.fc .fc-button:disabled {
+  background-color: #ddd;
+  color: #999;
+  cursor: not-allowed;
+}
