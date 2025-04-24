@@ -1,0 +1,44 @@
+.dashboard-root {
+  display: flex;
+  height: 100vh;
+  margin: 0;
+}
+
+.sidebar {
+  width: 160px;
+  background: #4a3b29;
+  display: flex;
+  flex-direction: column;
+  padding: 1rem 0;
+}
+
+.sidebar-button {
+  background: transparent;
+  border: none;
+  color: white;
+  text-align: left;
+  padding: 0.75rem 1rem;
+  font-size: 1.1rem;
+  cursor: pointer;
+}
+
+.sidebar-button:hover {
+  background: rgba(255,255,255,0.1);
+}
+
+.logout-button {
+  margin-top: auto;
+  padding: 0.6rem 1rem;
+  background: #4a3b29;
+  font-size: 1rem;
+}
+
+.logout-button:hover {
+  background: rgba(255,255,0.1);
+}
+
+.dashboard-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
