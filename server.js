@@ -235,7 +235,7 @@ app.post('/api/deleteEntry', async(req, res, next) => {
     }
 });
 
-app.post('/api/updateEntry', async (req, res, next) => {
+app.post('/api/updateEntry', upload.array('images', 3), async (req, res, next) => {
     const { entryId, entryText } = req.body;
 
     // ensure entryId exists
@@ -250,11 +250,31 @@ app.post('/api/updateEntry', async (req, res, next) => {
 
     try {
         const db = client.db();
+        const bucket = new GridFSBucket(db, { bucketName: 'entryImages'});
+
+        const newImageIds = [];
+        for(const file of req.files)
+        {
+            const uploadStream = bucket.openUploadStream(file.originalname,
+                { contentType: file.mimetype }
+            );
+            uploadStream.end(file.buffer);
+
+            await new Promise((resolve, reject) => {
+                uploadStream.on('error', reject);
+                uploadStream.on('finish', () => resolve());
+            });
+            newImageIds.push(uploadStream.id);
+        }
+
         const result = await db
             .collection('Entries')
             .updateOne(
                 { EntryId: id },
-                { $set: { EntryText: entryText } }
+                {
+                    $set: { EntryText: entryText },
+                    $push: { ImageFileIds: {$each: newImageIds }}
+                }
             );
 
         // no match means the entry wasn’t found
@@ -266,6 +286,7 @@ app.post('/api/updateEntry', async (req, res, next) => {
         return res.status(200).json({
             EntryId: id,
             EntryText: entryText,
+            AddedImageFileIds: newImageIds,
             error: ''
         });
     } catch (e) {
